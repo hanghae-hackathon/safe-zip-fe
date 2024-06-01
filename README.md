@@ -20,3 +20,8 @@
 ![임대인](./임대인_use_case.png)
 
 ![시세예측기](./시세예측기_use_case.png)
+
+
+- https://drive.google.com/file/d/1Ojo3XPlx8q0Q1vccIQkj35JLUClTmllw/view?usp=sharing
+
+
