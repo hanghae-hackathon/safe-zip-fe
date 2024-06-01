@@ -18,3 +18,5 @@
 ![임차인](./임차인_use_case.png)
 
 ![임대인](./임대인_use_case.png)
+
+![시세예측기](./시세예측기_use_case.png)
