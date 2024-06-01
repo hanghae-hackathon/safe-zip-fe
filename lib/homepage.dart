@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.isLandlord});
@@ -18,7 +19,9 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = false;
   bool _userAborted = false;
   String _uploadStatus = '';
-  String finalResult = '';
+  String finalResult = "";
+  final TextEditingController _textController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   void _pickFiles() async {
     setState(() => _isLoading = true);
@@ -60,6 +63,7 @@ class _HomePageState extends State<HomePage> {
         ),
       );
       request.fields['is_landlord'] = widget.isLandlord.toString();
+      request.fields['user_question'] = _textController.text;
       var response = await request.send();
 
       if (response.statusCode == 200) {
@@ -72,12 +76,15 @@ class _HomePageState extends State<HomePage> {
         await for (var chunk in stream) {
           bytes.addAll(chunk);
         }
+
         setState(() {
-          _uploadStatus = 'File uploaded successfully';
+          //_uploadStatus = 'File uploaded successfully';
           //finalResult = response.toString();
 
           // 바이트 리스트를 문자열로 변환합니다.
           finalResult = utf8.decode(bytes);
+          var result = jsonDecode(finalResult);
+          finalResult = result['result'];
         });
       } else {
         setState(() {
@@ -87,7 +94,7 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       setState(() {
-        _uploadStatus = 'File upload failed: $e';
+        //_uploadStatus = 'File upload failed: $e';
       });
     }
 
@@ -113,13 +120,48 @@ class _HomePageState extends State<HomePage> {
                         child: const Text('Pick File'),
                       ),
                 const SizedBox(height: 20),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: <Widget>[
+                      TextFormField(
+                        controller: _textController,
+                        decoration: const InputDecoration(
+                          labelText: '질문 사항',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
                 ElevatedButton(
-                  onPressed: _selectedFile == null ? null : () => _uploadFile(),
+                  onPressed: _selectedFile == null
+                      ? null
+                      : () {
+                          if (_formKey.currentState?.validate() ?? false) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Processing Data')),
+                            );
+                            _uploadFile();
+                          } else {}
+                        },
                   child: const Text('AI 안심거래 확인'),
                 ),
                 const SizedBox(height: 20),
                 Text(_uploadStatus),
-                Text(finalResult),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: Markdown(
+                    data: finalResult,
+                  ),
+                ),
               ],
             ),
           ),
